@@ -79,5 +79,49 @@
         print(i)
         
         
+#Task5 - Create a new collection which consists of students who scored below average and above 40% in all the categories.
+
+    stage1={'$unwind':'$scores'}
+    stage2={'$group':{'_id':'$scores.type','Avg_Score':{'$avg':'$scores.score'}}}
+    avg_score = []
+    for i in mycol.aggregate([stage1,stage2]):
+        avg_score.append(i['Avg_Score'])
+
+    query = {'$and':[{'$and':[{'scores.0.score':{'$gte':40}},{'scores.0.score':{'$lt':avg_score[0]}}]},
+                     {'$and':[{'scores.1.score':{'$gte':40}},{'scores.1.score':{'$lt':avg_score[2]}}]},
+                     {'$and':[{'scores.2.score':{'$gte':40}},{'scores.2.score':{'$lt':avg_score[1]}}]}]}
+
+    for i in mycol.find(query):
+        print(i)
+        mycol_avg_all_categories = mydb['avg_marks_all_categories']
+        mycol_avg_all_categories.insert_one(i)
+
+    #To check new created collections,
+    mycol_avg_all_categories = mydb['avg_marks_all_categories']
+    for i in mycol_avg_all_categories.find():
+        print(i)
+
+#Task6 - Create a new collection which consists of students who scored below the fail mark in all the categories.
+
+    stage1={'$match':{'$and':[{'scores.0.score':{'$lt':40}},{'scores.1.score':{'$lt':40}},{'scores.2.score':{'$lt':40}}]}}
+    stage2={'$out':'Fail_in_All_Categories'}
+    for i in mycol.aggregate([stage1,stage2]):
+        print(i)
+
+    #To check new created collections,
+    mycol_fail_all_categories = mydb['Fail_in_All_Categories']
+    for i in mycol_fail_all_categories.find():
+        print(i)
 
 
+#Task7 - Create a new collection which consists of students who scored above pass mark in all the categories.
+
+    stage1={'$match':{'$and':[{'scores.0.score':{'$gte':40}},{'scores.1.score':{'$gte':40}},{'scores.2.score':{'$gte':40}}]}}
+    stage2={'$out':'Pass_in_All_Categories'}
+    for i in mycol.aggregate([stage1,stage2]):
+        print(i)
+
+    #To check new created collections,
+    mycol_pass_all_categories = mydb['Pass_in_All_Categories']
+    for i in mycol_pass_all_categories.find():
+        print(i)
